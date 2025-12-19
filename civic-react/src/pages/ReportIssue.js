@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { issuesAPI } from '../services/api';
 import './ReportIssue.css';
 
 const ReportIssue = () => {
@@ -44,34 +45,27 @@ const ReportIssue = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    const user = JSON.parse(localStorage.getItem('user'));
-    
-    const newIssue = {
-      id: Date.now(),
-      title: formData.title,
-      category: formData.issueType,
-      location: formData.address,
-      description: formData.description,
-      severity: formData.severity,
-      date: new Date().toISOString(),
-      status: 'pending',
-      reportedBy: user ? user.username : 'Anonymous',
-      coordinates: { latitude, longitude },
-      contactInfo: {
+    try {
+      const issueData = {
+        title: formData.title,
+        category: formData.issueType,
+        description: formData.description,
+        severity: formData.severity,
+        address: formData.address,
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
         name: formData.name,
         email: formData.email,
         phone: formData.phone
-      }
-    };
+      };
 
-    // Save to localStorage
-    const existingIssues = JSON.parse(localStorage.getItem('issues') || '[]');
-    existingIssues.push(newIssue);
-    localStorage.setItem('issues', JSON.stringify(existingIssues));
-    
-    setTimeout(() => {
+      if (formData.image) {
+        issueData.image = formData.image;
+      }
+
+      await issuesAPI.createIssue(issueData);
+      
       alert('Issue reported successfully!');
-      setIsSubmitting(false);
       // Reset form
       setFormData({
         issueType: '',
@@ -87,7 +81,12 @@ const ReportIssue = () => {
       });
       setLatitude('');
       setLongitude('');
-    }, 2000);
+    } catch (error) {
+      console.error('Error reporting issue:', error);
+      alert('Failed to report issue. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (

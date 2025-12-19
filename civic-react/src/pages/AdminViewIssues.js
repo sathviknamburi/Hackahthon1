@@ -1,22 +1,36 @@
 import React, { useState, useEffect } from 'react';
+import { issuesAPI } from '../services/api';
 import './AdminViewIssues.css';
 
 const AdminViewIssues = () => {
   const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedIssues = localStorage.getItem('issues');
-    if (savedIssues) {
-      setIssues(JSON.parse(savedIssues));
-    }
+    fetchIssues();
   }, []);
 
-  const updateIssueStatus = (issueId, newStatus) => {
-    const updatedIssues = issues.map(issue => 
-      issue.id === issueId ? { ...issue, status: newStatus } : issue
-    );
-    setIssues(updatedIssues);
-    localStorage.setItem('issues', JSON.stringify(updatedIssues));
+  const fetchIssues = async () => {
+    try {
+      const response = await issuesAPI.getAllIssues();
+      setIssues(response.data);
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateIssueStatus = async (issueId, newStatus) => {
+    try {
+      await issuesAPI.updateIssueStatus(issueId, newStatus);
+      setIssues(issues.map(issue => 
+        issue._id === issueId ? { ...issue, status: newStatus } : issue
+      ));
+    } catch (error) {
+      console.error('Error updating issue status:', error);
+      alert('Failed to update issue status');
+    }
   };
 
   const getStatusColor = (status) => {
@@ -32,12 +46,14 @@ const AdminViewIssues = () => {
     <div className="admin-view-issues">
       <h2>Admin - Manage Issues</h2>
       
-      {issues.length === 0 ? (
+      {loading ? (
+        <p>Loading issues...</p>
+      ) : issues.length === 0 ? (
         <p>No issues reported yet.</p>
       ) : (
         <div className="issues-grid">
           {issues.map((issue) => (
-            <div key={issue.id} className="issue-card">
+            <div key={issue._id} className="issue-card">
               <div className="issue-header">
                 <h3>{issue.title}</h3>
                 <span 
@@ -50,17 +66,18 @@ const AdminViewIssues = () => {
               
               <div className="issue-details">
                 <p><strong>Category:</strong> {issue.category}</p>
-                <p><strong>Location:</strong> {issue.location}</p>
+                <p><strong>Location:</strong> {issue.location?.address}</p>
                 <p><strong>Description:</strong> {issue.description}</p>
-                <p><strong>Reported by:</strong> {issue.reportedBy}</p>
-                <p><strong>Date:</strong> {new Date(issue.date).toLocaleDateString()}</p>
+                <p><strong>Reported by:</strong> {issue.reportedBy?.username}</p>
+                <p><strong>Date:</strong> {new Date(issue.createdAt).toLocaleDateString()}</p>
+                {issue.severity && <p><strong>Severity:</strong> {issue.severity}</p>}
               </div>
 
               <div className="status-controls">
                 <label>Update Status:</label>
                 <select 
                   value={issue.status} 
-                  onChange={(e) => updateIssueStatus(issue.id, e.target.value)}
+                  onChange={(e) => updateIssueStatus(issue._id, e.target.value)}
                   className="status-select"
                 >
                   <option value="pending">Pending</option>

@@ -11,7 +11,7 @@ const Login = () => {
     confirmPassword: ''
   });
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, register } = useAuth();
 
   const handleChange = (e) => {
     setFormData({
@@ -20,7 +20,7 @@ const Login = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
@@ -29,9 +29,19 @@ const Login = () => {
       return;
     }
 
-    const result = login(formData.username, formData.password, isAdmin);
-    if (!result.success) {
-      setError(result.message);
+    try {
+      let result;
+      if (isSignUp && !isAdmin) {
+        result = await register(formData.username, formData.password);
+      } else {
+        result = await login(formData.username, formData.password, isAdmin);
+      }
+      
+      if (!result.success) {
+        setError(result.message);
+      }
+    } catch (error) {
+      setError('An error occurred. Please try again.');
     }
   };
 

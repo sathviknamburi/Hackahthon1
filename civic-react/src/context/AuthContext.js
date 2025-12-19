@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { authAPI } from '../services/api';
 
 const AuthContext = createContext();
 
@@ -16,49 +17,59 @@ export const AuthProvider = ({ children }) => {
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const token = localStorage.getItem('token');
+    if (savedUser && token) {
       setUser(JSON.parse(savedUser));
     }
     setIsLoading(false);
   }, []);
 
-  const login = (username, password, isAdmin = false) => {
-    // Admin credentials (you can change these)
-    const adminCredentials = {
-      username: 'admin',
-      password: 'admin123'
-    };
+  const login = async (username, password, isAdmin = false) => {
+    try {
+      const response = await authAPI.login(username, password, isAdmin);
+      const { token, user: userData } = response.data;
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Login failed' 
+      };
+    }
+  };
 
-    if (isAdmin) {
-      if (username === adminCredentials.username && password === adminCredentials.password) {
-        const adminUser = { username, role: 'admin' };
-        setUser(adminUser);
-        localStorage.setItem('user', JSON.stringify(adminUser));
-        return { success: true };
-      } else {
-        return { success: false, message: 'Invalid admin credentials' };
-      }
-    } else {
-      // For regular users, just check if username and password are provided
-      if (username && password) {
-        const regularUser = { username, role: 'user' };
-        setUser(regularUser);
-        localStorage.setItem('user', JSON.stringify(regularUser));
-        return { success: true };
-      } else {
-        return { success: false, message: 'Please provide username and password' };
-      }
+  const register = async (username, password) => {
+    try {
+      const response = await authAPI.register(username, password);
+      const { token, user: userData } = response.data;
+      
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+      localStorage.setItem('token', token);
+      
+      return { success: true };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error.response?.data?.message || 'Registration failed' 
+      };
     }
   };
 
   const logout = () => {
     setUser(null);
     localStorage.removeItem('user');
+    localStorage.removeItem('token');
   };
 
   const value = {
     user,
     login,
+    register,
     logout,
     isLoading
   };
