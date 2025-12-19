@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -8,12 +9,20 @@ const Navbar = () => {
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const { user, logout } = useAuth();
+
+  if (!user) {
+    return null;
+  }
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
   }, [isDarkMode]);
 
-  const navItems = [
+  const navItems = user.role === 'admin' ? [
+    { path: '/', label: 'Home' },
+    { path: '/admin/issues', label: 'Manage Issues' }
+  ] : [
     { path: '/', label: 'Home' },
     { path: '/about', label: 'About' },
     { path: '/gallery', label: 'Gallery' },
@@ -128,6 +137,11 @@ const Navbar = () => {
               </svg>
             )}
           </button>
+
+          <div className="user-section">
+            <span className="username-display">{user.username}</span>
+            <button className="logout-btn" onClick={logout}>Logout</button>
+          </div>
 
           <button 
             className={`mobile-menu-btn ${isOpen ? 'active' : ''}`}

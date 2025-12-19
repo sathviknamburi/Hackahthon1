@@ -44,7 +44,31 @@ const ReportIssue = () => {
     e.preventDefault();
     setIsSubmitting(true);
     
-    // Simulate API call
+    const user = JSON.parse(localStorage.getItem('user'));
+    
+    const newIssue = {
+      id: Date.now(),
+      title: formData.title,
+      category: formData.issueType,
+      location: formData.address,
+      description: formData.description,
+      severity: formData.severity,
+      date: new Date().toISOString(),
+      status: 'pending',
+      reportedBy: user ? user.username : 'Anonymous',
+      coordinates: { latitude, longitude },
+      contactInfo: {
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone
+      }
+    };
+
+    // Save to localStorage
+    const existingIssues = JSON.parse(localStorage.getItem('issues') || '[]');
+    existingIssues.push(newIssue);
+    localStorage.setItem('issues', JSON.stringify(existingIssues));
+    
     setTimeout(() => {
       alert('Issue reported successfully!');
       setIsSubmitting(false);
@@ -61,6 +85,8 @@ const ReportIssue = () => {
         landmark: '',
         image: null
       });
+      setLatitude('');
+      setLongitude('');
     }, 2000);
   };
 
