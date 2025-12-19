@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+body {
+  margin: 0;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: all 0.3s ease;
+}
+
+body.light-mode {
+  background-color: #ffffff;
+  color: #1f2937;
+}
+
+body.dark-mode {
+  background-color: #111827;
+  color: #f9fafb;
+}
+
+.dark-mode .gallery,
+.dark-mode .view-issues,
+.dark-mode .report-issue,
+.dark-mode .contact {
+  background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+}
+
+.dark-mode .story-card,
+.dark-mode .issue-card,
+.dark-mode .report-form,
+.dark-mode .contact-form,
+.dark-mode .info-card,
+.dark-mode .prize-card,
+.dark-mode .faq-item {
+  background: #1f2937;
+  color: #f9fafb;
+}
+
+.dark-mode h1,
+.dark-mode h2,
+.dark-mode h3,
+.dark-mode h4 {
+  color: #f9fafb;
+}
+
+.dark-mode .gallery-header p,
+.dark-mode .issues-header p,
+.dark-mode .report-header p,
+.dark-mode .contact-header p {
+  color: #9ca3af;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
