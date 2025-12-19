@@ -7,6 +7,8 @@ const issueSchema = new mongoose.Schema({
   category: { type: String, required: true },
   location: { type: String, required: true },
   nearbyLandmark: { type: String },
+  latitude: { type: Number },
+  longitude: { type: Number },
   image: { type: String },
   user_id: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
   status: { type: String, enum: ['Open', 'In Progress', 'Resolved', 'Closed'], default: 'Open' }

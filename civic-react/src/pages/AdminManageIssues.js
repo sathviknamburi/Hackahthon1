@@ -171,6 +171,19 @@ const AdminManageIssues = () => {
                     <div><strong>Location:</strong> {issue.location}</div>
                     <div><strong>Reporter:</strong> {issue.user_id?.email}</div>
                     {issue.nearbyLandmark && <div><strong>Landmark:</strong> {issue.nearbyLandmark}</div>}
+                    {(issue.latitude && issue.longitude) && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <strong>GPS Location:</strong> {issue.latitude.toFixed(6)}, {issue.longitude.toFixed(6)}
+                        <a 
+                          href={`https://www.google.com/maps?q=${issue.latitude},${issue.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ marginLeft: '10px', color: '#007bff', textDecoration: 'none' }}
+                        >
+                          📍 View on Map
+                        </a>
+                      </div>
+                    )}
                     <div><strong>Created:</strong> {formatDate(issue.createdAt)}</div>
                     <div><strong>Updated:</strong> {formatDate(issue.updatedAt)}</div>
                   </div>

@@ -6,12 +6,41 @@ const router = express.Router();
 // Report Issue
 router.post('/report', auth, async (req, res) => {
   try {
-    const issue = new Issue({ ...req.body, user_id: req.user.userId });
-    await issue.save();
-    await issue.populate('user_id', 'email');
-    res.json({ success: true, issue });
+    const { latitude, longitude, ...otherData } = req.body;
+    
+    // Validate coordinates if provided
+    if (latitude !== null && latitude !== undefined) {
+      if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
+        return res.status(400).json({ success: false, message: 'Invalid latitude' });
+      }
+    }
+    if (longitude !== null && longitude !== undefined) {
+      if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
+        return res.status(400).json({ success: false, message: 'Invalid longitude' });
+      }
+    }
+    
+    console.log('Creating issue with data:', { ...otherData, latitude, longitude, user_id: req.user.userId });
+    
+    const issue = new Issue({ 
+      ...otherData, 
+      latitude: latitude || null,
+      longitude: longitude || null,
+      user_id: req.user.userId 
+    });
+    
+    const savedIssue = await issue.save();
+    await savedIssue.populate('user_id', 'email');
+    
+    console.log('Issue saved successfully:', savedIssue._id);
+    res.status(201).json({ 
+      success: true, 
+      message: 'Issue reported successfully',
+      issue: savedIssue 
+    });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('Error creating issue:', error);
+    res.status(500).json({ success: false, message: 'Server error: ' + error.message });
   }
 });
 
