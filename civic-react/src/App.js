@@ -1,6 +1,6 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 import Home from './pages/Home';
@@ -9,23 +9,22 @@ import Gallery from './pages/Gallery';
 import ReportIssue from './pages/ReportIssue';
 import ViewIssues from './pages/ViewIssues';
 import AdminViewIssues from './pages/AdminViewIssues';
+import ManageIssues from './pages/ManageIssues';
 import Contact from './pages/Contact';
 import Login from './components/Login';
 
 import './App.css';
 
-function App() {
+const AppRoutes = () => {
+  const { user } = useAuth();
+  
   return (
-    <AuthProvider>
-      <Router>
-        <div className="App">
-          <Navbar />
-          <Routes>
-            <Route path="/" element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            } />
+    <Routes>
+      <Route path="/" element={
+        <ProtectedRoute>
+          {user?.role === 'admin' ? <Navigate to="/admin/issues" replace /> : <Home />}
+        </ProtectedRoute>
+      } />
             <Route path="/about" element={
               <ProtectedRoute>
                 <About />
@@ -56,8 +55,23 @@ function App() {
                 <AdminViewIssues />
               </ProtectedRoute>
             } />
-            <Route path="/login" element={<Login />} />
-          </Routes>
+            <Route path="/admin/manage" element={
+              <ProtectedRoute adminOnly={true}>
+                <ManageIssues />
+              </ProtectedRoute>
+            } />
+      <Route path="/login" element={<Login />} />
+    </Routes>
+  );
+};
+
+function App() {
+  return (
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Navbar />
+          <AppRoutes />
         </div>
       </Router>
     </AuthProvider>

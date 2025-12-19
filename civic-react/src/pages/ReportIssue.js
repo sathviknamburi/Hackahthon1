@@ -15,23 +15,7 @@ const ReportIssue = () => {
     landmark: '',
     image: null
   });
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLatitude(pos.coords.latitude.toFixed(6));
-          setLongitude(pos.coords.longitude.toFixed(6));
-        },
-        () => {
-          alert('Unable to get your location. Please enter coordinates manually.');
-        }
-      );
-    }
-  };
 
   const handleInputChange = (e) => {
     const { name, value, files } = e.target;
@@ -52,8 +36,6 @@ const ReportIssue = () => {
         description: formData.description,
         severity: formData.severity,
         address: formData.address,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude),
         name: formData.name,
         email: formData.email,
         phone: formData.phone
@@ -79,8 +61,6 @@ const ReportIssue = () => {
         landmark: '',
         image: null
       });
-      setLatitude('');
-      setLongitude('');
     } catch (error) {
       console.error('Error reporting issue:', error);
       alert('Failed to report issue. Please try again.');
@@ -236,45 +216,7 @@ const ReportIssue = () => {
             </div>
           </div>
 
-          <div className="location-section">
-            <h3>Location Coordinates</h3>
-            <p>Provide the exact location coordinates of the issue</p>
-            
-            <div className="location-controls">
-              <button 
-                type="button" 
-                className="location-btn"
-                onClick={getCurrentLocation}
-              >
-                📍 Get Current Location
-              </button>
-            </div>
-
-            <div className="coordinates-input">
-              <div className="form-group">
-                <label>Latitude *</label>
-                <input 
-                  type="number" 
-                  step="any"
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
-                  placeholder="17.385044"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Longitude *</label>
-                <input 
-                  type="number" 
-                  step="any"
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
-                  placeholder="78.486671"
-                  required
-                />
-              </div>
-            </div>
-          </div>
+          {/* Location coordinates removed — using address/landmark only */}
 
           <div className="form-actions">
             <button 

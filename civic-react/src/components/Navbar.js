@@ -36,8 +36,8 @@ const Navbar = () => {
   }
 
   const navItems = user.role === 'admin' ? [
-    { path: '/', label: 'Home' },
-    { path: '/admin/issues', label: 'Manage Issues' }
+    { path: '/admin/issues', label: 'View Issues' },
+    { path: '/admin/manage', label: 'Manage Issues' }
   ] : [
     { path: '/', label: 'Home' },
     { path: '/about', label: 'About' },
@@ -84,64 +84,9 @@ const Navbar = () => {
           ))}
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-          <div className="language-switcher" onMouseLeave={() => setShowLangDropdown(false)}>
-            <button 
-              className="language-btn" 
-              onMouseEnter={() => setShowLangDropdown(true)}
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="10"/>
-                <path d="M2 12h20"/>
-                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-              </svg>
-              <span>{currentLang}</span>
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <polyline points="6,9 12,15 18,9"/>
-              </svg>
-            </button>
-            {showLangDropdown && (
-              <div className="language-dropdown">
-                {languages.map((lang) => (
-                  <button 
-                    key={lang.code}
-                    className="language-option" 
-                    onClick={() => handleLanguageChange(lang)}
-                  >
-                    <span className="lang-flag">{lang.flag}</span>
-                    <span className="lang-name">{lang.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <button 
-            className="theme-toggle"
-            onClick={() => setIsDarkMode(!isDarkMode)}
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="12" cy="12" r="5"/>
-                <line x1="12" y1="1" x2="12" y2="3"/>
-                <line x1="12" y1="21" x2="12" y2="23"/>
-                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/>
-                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
-                <line x1="1" y1="12" x2="3" y2="12"/>
-                <line x1="21" y1="12" x2="23" y2="12"/>
-                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/>
-                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
-              </svg>
-            ) : (
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
-              </svg>
-            )}
-          </button>
-
+        <div className="navbar-actions">
           <div className="user-section">
-            <span className="username-display">{user.username}</span>
+            <span className="username-display">👤 {user.username}</span>
             <button className="logout-btn" onClick={logout}>Logout</button>
           </div>
 

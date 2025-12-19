@@ -8,6 +8,10 @@ router.post('/register', async (req, res) => {
   try {
     const { username, password } = req.body;
 
+    if (!username || !password) {
+      return res.status(400).json({ message: 'Username and password are required' });
+    }
+
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       return res.status(400).json({ message: 'Username already exists' });
@@ -16,7 +20,7 @@ router.post('/register', async (req, res) => {
     const user = new User({ username, password });
     await user.save();
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
     res.status(201).json({
       token,
@@ -27,7 +31,18 @@ router.post('/register', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Registration error:', error);
+    
+    if (error.name === 'MongoNetworkError' || error.name === 'MongooseServerSelectionError') {
+      return res.status(500).json({ 
+        message: 'Database connection failed. Please ensure MongoDB is running.' 
+      });
+    }
+    
+    res.status(500).json({ 
+      message: 'Registration failed. Please try again.', 
+      error: error.message 
+    });
   }
 });
 
@@ -46,7 +61,7 @@ router.post('/login', async (req, res) => {
           await adminUser.save();
         }
 
-        const token = jwt.sign({ userId: adminUser._id }, process.env.JWT_SECRET);
+        const token = jwt.sign({ userId: adminUser._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
         
         return res.json({
           token,
@@ -67,7 +82,7 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     
     res.json({
       token,
@@ -78,7 +93,8 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    res.status(500).json({ message: 'Server error' });
+    console.error('Login error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 
