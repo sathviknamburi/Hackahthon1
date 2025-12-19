@@ -1,267 +1,203 @@
 import React, { useState } from 'react';
-import './ReportIssue.css';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const ReportIssue = () => {
   const [formData, setFormData] = useState({
-    issueType: '',
     title: '',
     description: '',
-    severity: '',
-    name: '',
-    email: '',
-    phone: '',
-    address: '',
-    landmark: '',
-    image: null
+    category: '',
+    location: '',
+    nearbyLandmark: ''
   });
-  const [latitude, setLatitude] = useState('');
-  const [longitude, setLongitude] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const getCurrentLocation = () => {
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          setLatitude(pos.coords.latitude.toFixed(6));
-          setLongitude(pos.coords.longitude.toFixed(6));
-        },
-        () => {
-          alert('Unable to get your location. Please enter coordinates manually.');
-        }
-      );
-    }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: files ? files[0] : value
-    }));
-  };
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const { token } = useAuth();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitting(true);
+    setLoading(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      alert('Issue reported successfully!');
-      setIsSubmitting(false);
-      // Reset form
-      setFormData({
-        issueType: '',
-        title: '',
-        description: '',
-        severity: '',
-        name: '',
-        email: '',
-        phone: '',
-        address: '',
-        landmark: '',
-        image: null
-      });
-    }, 2000);
+    try {
+      const response = await api.issues.report(formData, token);
+      const data = await response.json();
+      
+      if (data.success) {
+        setSuccess(true);
+        setFormData({ title: '', description: '', category: '', location: '', nearbyLandmark: '' });
+        setTimeout(() => {
+          navigate('/my-issues');
+        }, 2000);
+      }
+    } catch (error) {
+      console.error('Error reporting issue:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    });
+  };
+
+  if (success) {
+    return (
+      <div style={{ padding: '20px', textAlign: 'center' }}>
+        <h2 style={{ color: '#28a745' }}>Issue Reported Successfully!</h2>
+        <p>Your issue has been submitted and will be reviewed by our team.</p>
+        <p>Redirecting to My Issues...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="report-issue">
-      <div className="container">
-        <div className="report-header">
-          <h1>Report Civic Issue</h1>
-          <p>Help us make your city better by reporting issues in your area</p>
+    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
+      <h1>Report an Issue</h1>
+      <p>Help improve your community by reporting civic issues.</p>
+      
+      <form onSubmit={handleSubmit} style={{ backgroundColor: '#f8f9fa', padding: '30px', borderRadius: '8px' }}>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Issue Title *</label>
+          <input
+            type="text"
+            name="title"
+            value={formData.title}
+            onChange={handleChange}
+            required
+            placeholder="Brief description of the issue"
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px'
+            }}
+          />
         </div>
 
-        <form onSubmit={handleSubmit} className="report-form">
-          <div className="form-grid">
-            <div className="form-section">
-              <h3>Issue Details</h3>
-              
-              <div className="form-group">
-                <label>Issue Type *</label>
-                <select 
-                  name="issueType" 
-                  value={formData.issueType} 
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Select Issue Type</option>
-                  <option value="pothole">Pothole</option>
-                  <option value="garbage">Garbage Collection</option>
-                  <option value="streetlight">Street Light</option>
-                  <option value="drainage">Drainage</option>
-                  <option value="water">Water Supply</option>
-                  <option value="traffic">Traffic Signal</option>
-                  <option value="other">Other</option>
-                </select>
-              </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Category *</label>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            required
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px'
+            }}
+          >
+            <option value="">Select a category</option>
+            <option value="Road">Road & Transportation</option>
+            <option value="Water">Water & Drainage</option>
+            <option value="Electricity">Electricity & Power</option>
+            <option value="Waste Management">Waste Management</option>
+            <option value="Public Safety">Public Safety</option>
+            <option value="Parks & Recreation">Parks & Recreation</option>
+            <option value="Other">Other</option>
+          </select>
+        </div>
 
-              <div className="form-group">
-                <label>Issue Title *</label>
-                <input 
-                  type="text" 
-                  name="title" 
-                  value={formData.title}
-                  onChange={handleInputChange}
-                  placeholder="Brief title of the issue"
-                  required
-                />
-              </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Description *</label>
+          <textarea
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            required
+            rows="5"
+            placeholder="Provide detailed information about the issue"
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px',
+              resize: 'vertical'
+            }}
+          />
+        </div>
 
-              <div className="form-group">
-                <label>Description *</label>
-                <textarea 
-                  name="description" 
-                  value={formData.description}
-                  onChange={handleInputChange}
-                  placeholder="Detailed description of the issue"
-                  rows="4"
-                  required
-                ></textarea>
-              </div>
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Location *</label>
+          <input
+            type="text"
+            name="location"
+            value={formData.location}
+            onChange={handleChange}
+            required
+            placeholder="Street address or area name"
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px'
+            }}
+          />
+        </div>
 
-              <div className="form-group">
-                <label>Severity Level *</label>
-                <select 
-                  name="severity" 
-                  value={formData.severity} 
-                  onChange={handleInputChange}
-                  required
-                >
-                  <option value="">Select Severity</option>
-                  <option value="low">Low - Minor inconvenience</option>
-                  <option value="medium">Medium - Moderate impact</option>
-                  <option value="high">High - Urgent attention needed</option>
-                  <option value="critical">Critical - Emergency</option>
-                </select>
-              </div>
+        <div style={{ marginBottom: '30px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Nearby Landmark</label>
+          <input
+            type="text"
+            name="nearbyLandmark"
+            value={formData.nearbyLandmark}
+            onChange={handleChange}
+            placeholder="Any nearby landmark to help locate the issue"
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px'
+            }}
+          />
+        </div>
 
-              <div className="form-group">
-                <label>Upload Image</label>
-                <input 
-                  type="file" 
-                  name="image" 
-                  onChange={handleInputChange}
-                  accept="image/*"
-                />
-              </div>
-            </div>
-
-            <div className="form-section">
-              <h3>Contact Information</h3>
-              
-              <div className="form-group">
-                <label>Full Name *</label>
-                <input 
-                  type="text" 
-                  name="name" 
-                  value={formData.name}
-                  onChange={handleInputChange}
-                  placeholder="Your full name"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Email *</label>
-                <input 
-                  type="email" 
-                  name="email" 
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  placeholder="your.email@example.com"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Phone Number *</label>
-                <input 
-                  type="tel" 
-                  name="phone" 
-                  value={formData.phone}
-                  onChange={handleInputChange}
-                  placeholder="+91 9876543210"
-                  required
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Address *</label>
-                <textarea 
-                  name="address" 
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Complete address where the issue is located"
-                  rows="3"
-                  required
-                ></textarea>
-              </div>
-
-              <div className="form-group">
-                <label>Nearby Landmark</label>
-                <input 
-                  type="text" 
-                  name="landmark" 
-                  value={formData.landmark}
-                  onChange={handleInputChange}
-                  placeholder="Any nearby landmark for easy identification"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="location-section">
-            <h3>Location Coordinates</h3>
-            <p>Provide the exact location coordinates of the issue</p>
-            
-            <div className="location-controls">
-              <button 
-                type="button" 
-                className="location-btn"
-                onClick={getCurrentLocation}
-              >
-                📍 Get Current Location
-              </button>
-            </div>
-
-            <div className="coordinates-input">
-              <div className="form-group">
-                <label>Latitude *</label>
-                <input 
-                  type="number" 
-                  step="any"
-                  value={latitude}
-                  onChange={(e) => setLatitude(e.target.value)}
-                  placeholder="17.385044"
-                  required
-                />
-              </div>
-              <div className="form-group">
-                <label>Longitude *</label>
-                <input 
-                  type="number" 
-                  step="any"
-                  value={longitude}
-                  onChange={(e) => setLongitude(e.target.value)}
-                  placeholder="78.486671"
-                  required
-                />
-              </div>
-            </div>
-          </div>
-
-          <div className="form-actions">
-            <button 
-              type="submit" 
-              className="submit-btn"
-              disabled={isSubmitting}
-            >
-              {isSubmitting ? 'Submitting...' : 'Submit Report'}
-            </button>
-          </div>
-        </form>
-      </div>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              backgroundColor: loading ? '#6c757d' : '#007bff',
+              color: 'white',
+              border: 'none',
+              padding: '12px 30px',
+              borderRadius: '5px',
+              fontSize: '16px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              flex: 1
+            }}
+          >
+            {loading ? 'Submitting...' : 'Submit Issue'}
+          </button>
+          
+          <button
+            type="button"
+            onClick={() => navigate('/my-issues')}
+            style={{
+              backgroundColor: '#6c757d',
+              color: 'white',
+              border: 'none',
+              padding: '12px 30px',
+              borderRadius: '5px',
+              fontSize: '16px',
+              cursor: 'pointer'
+            }}
+          >
+            Cancel
+          </button>
+        </div>
+      </form>
     </div>
   );
 };

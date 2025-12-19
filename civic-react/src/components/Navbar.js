@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
 import './Navbar.css';
 
 const Navbar = () => {
@@ -8,19 +9,30 @@ const Navbar = () => {
   const [showLangDropdown, setShowLangDropdown] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
   }, [isDarkMode]);
 
-  const navItems = [
-    { path: '/', label: 'Home' },
-    { path: '/about', label: 'About' },
-    { path: '/gallery', label: 'Gallery' },
-    { path: '/report', label: 'Report Issue' },
-    { path: '/issues', label: 'View Issues' },
-    { path: '/contact', label: 'Contact' }
-  ];
+  const getNavItems = () => {
+    if (user?.role === 'ADMIN') {
+      return [
+        { path: '/admin/view-issues', label: 'View Issues' },
+        { path: '/admin/manage-issues', label: 'Manage Issues' }
+      ];
+    }
+    
+    return [
+      { path: '/home', label: 'Home' },
+      { path: '/about', label: 'About' },
+      { path: '/report', label: 'Report Issue' },
+      { path: '/my-issues', label: 'My Issues' },
+      { path: '/gallery', label: 'Gallery' },
+      { path: '/contact', label: 'Contact' }
+    ];
+  };
 
   const languages = [
     { code: 'en', flag: '🇺🇸', name: 'English', short: 'EN' },
@@ -61,7 +73,7 @@ const Navbar = () => {
         </Link>
 
         <div className="navbar-nav">
-          {navItems.map((item) => (
+          {getNavItems().map((item) => (
             <div key={item.path} className="nav-item">
               <Link 
                 to={item.path} 
@@ -71,6 +83,13 @@ const Navbar = () => {
               </Link>
             </div>
           ))}
+          <button 
+            className="nav-link logout-btn" 
+            onClick={() => { logout(); navigate('/login'); }}
+            style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
+          >
+            Logout
+          </button>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
@@ -141,7 +160,7 @@ const Navbar = () => {
       </div>
 
       <div className={`mobile-nav ${isOpen ? 'active' : ''}`}>
-        {navItems.map((item) => (
+        {getNavItems().map((item) => (
           <Link 
             key={item.path}
             to={item.path} 
@@ -151,6 +170,13 @@ const Navbar = () => {
             {item.label}
           </Link>
         ))}
+        <button 
+          className="mobile-nav-link logout-btn" 
+          onClick={() => { logout(); navigate('/login'); setIsOpen(false); }}
+          style={{ background: 'none', border: 'none', color: 'inherit', cursor: 'pointer' }}
+        >
+          Logout
+        </button>
         
         <div className="mobile-language-section">
           <div className="mobile-lang-title">Language</div>
