@@ -11,13 +11,29 @@ const Navbar = () => {
   const location = useLocation();
   const { user, logout } = useAuth();
 
-  if (!user) {
-    return null;
-  }
-
   useEffect(() => {
     document.body.className = isDarkMode ? 'dark-mode' : 'light-mode';
   }, [isDarkMode]);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const navbar = document.querySelector('.modern-navbar');
+      if (navbar) {
+        if (window.scrollY > 50) {
+          navbar.style.background = 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 50%, rgba(71, 85, 105, 0.95) 100%)';
+        } else {
+          navbar.style.background = 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)';
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  if (!user) {
+    return null;
+  }
 
   const navItems = user.role === 'admin' ? [
     { path: '/', label: 'Home' },
@@ -36,20 +52,6 @@ const Navbar = () => {
     { code: 'hi', flag: '🇮🇳', name: 'हिंदी', short: 'हि' },
     { code: 'te', flag: '🇮🇳', name: 'తెలుగు', short: 'తె' }
   ];
-
-  useEffect(() => {
-    const handleScroll = () => {
-      const navbar = document.querySelector('.modern-navbar');
-      if (window.scrollY > 50) {
-        navbar.style.background = 'linear-gradient(135deg, rgba(30, 41, 59, 0.95) 0%, rgba(51, 65, 85, 0.95) 50%, rgba(71, 85, 105, 0.95) 100%)';
-      } else {
-        navbar.style.background = 'linear-gradient(135deg, #1e293b 0%, #334155 50%, #475569 100%)';
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   const handleLanguageChange = (lang) => {
     setCurrentLang(lang.short);
