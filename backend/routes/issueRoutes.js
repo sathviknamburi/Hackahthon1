@@ -1,21 +1,22 @@
 const express = require('express');
 const Issue = require('../models/Issue');
 const { auth, adminOnly } = require('../middleware/auth');
+const upload = require('../utils/upload');
 const router = express.Router();
 
 // Report Issue
-router.post('/report', auth, async (req, res) => {
+router.post('/report', auth, upload.single('image'), async (req, res) => {
   try {
     const { latitude, longitude, ...otherData } = req.body;
     
     // Validate coordinates if provided
     if (latitude !== null && latitude !== undefined) {
-      if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
+      if (typeof Number(latitude) !== 'number' || Number(latitude) < -90 || Number(latitude) > 90) {
         return res.status(400).json({ success: false, message: 'Invalid latitude' });
       }
     }
     if (longitude !== null && longitude !== undefined) {
-      if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
+      if (typeof Number(longitude) !== 'number' || Number(longitude) < -180 || Number(longitude) > 180) {
         return res.status(400).json({ success: false, message: 'Invalid longitude' });
       }
     }
@@ -24,8 +25,9 @@ router.post('/report', auth, async (req, res) => {
     
     const issue = new Issue({ 
       ...otherData, 
-      latitude: latitude || null,
-      longitude: longitude || null,
+      latitude: latitude ? Number(latitude) : null,
+      longitude: longitude ? Number(longitude) : null,
+      image: req.file ? req.file.filename : null,
       user_id: req.user.userId 
     });
     
@@ -40,6 +42,10 @@ router.post('/report', auth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error creating issue:', error);
+    if (req.file) {
+      const fs = require('fs');
+      fs.unlinkSync(req.file.path);
+    }
     res.status(500).json({ success: false, message: 'Server error: ' + error.message });
   }
 });

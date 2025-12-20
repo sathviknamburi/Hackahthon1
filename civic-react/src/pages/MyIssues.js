@@ -147,6 +147,22 @@ const MyIssues = () => {
                         </a>
                       </div>
                     )}
+                    {issue.image && (
+                      <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                        <strong>Photo:</strong>
+                        <img 
+                          src={`http://localhost:5000/uploads/${issue.image}`}
+                          alt="Issue"
+                          style={{ 
+                            maxWidth: '200px', 
+                            maxHeight: '150px', 
+                            marginLeft: '10px', 
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        />
+                      </div>
+                    )}
                     <div><strong>Created:</strong> {formatDate(issue.createdAt)}</div>
                     <div><strong>Updated:</strong> {formatDate(issue.updatedAt)}</div>
                   </div>

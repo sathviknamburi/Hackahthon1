@@ -17,10 +17,9 @@ const api = {
     report: (data, token) => fetch(`${API_BASE}/issues/report`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify(data)
+      body: data
     }),
     getMyIssues: (token) => fetch(`${API_BASE}/issues/my-issues`, {
       headers: { 'Authorization': `Bearer ${token}` }

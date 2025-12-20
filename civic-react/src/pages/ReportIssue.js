@@ -11,7 +11,8 @@ const ReportIssue = () => {
     location: '',
     nearbyLandmark: '',
     latitude: null,
-    longitude: null
+    longitude: null,
+    image: null
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -27,7 +28,14 @@ const ReportIssue = () => {
     setError('');
     
     try {
-      const response = await api.issues.report(formData, token);
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null && formData[key] !== undefined) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
+      
+      const response = await api.issues.report(formDataToSend, token);
       
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -37,7 +45,7 @@ const ReportIssue = () => {
       
       if (data.success) {
         setSuccess(true);
-        setFormData({ title: '', description: '', category: '', location: '', nearbyLandmark: '', latitude: null, longitude: null });
+        setFormData({ title: '', description: '', category: '', location: '', nearbyLandmark: '', latitude: null, longitude: null, image: null });
         setTimeout(() => {
           navigate('/my-issues');
         }, 2000);
@@ -53,10 +61,17 @@ const ReportIssue = () => {
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
-    });
+    if (e.target.name === 'image') {
+      setFormData({
+        ...formData,
+        image: e.target.files[0]
+      });
+    } else {
+      setFormData({
+        ...formData,
+        [e.target.name]: e.target.value
+      });
+    }
   };
 
   const getCurrentLocation = () => {
@@ -231,6 +246,30 @@ const ReportIssue = () => {
               fontSize: '16px'
             }}
           />
+        </div>
+
+        <div style={{ marginBottom: '20px' }}>
+          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>Upload Photo (Optional)</label>
+          <input
+            type="file"
+            name="image"
+            accept="image/*"
+            onChange={handleChange}
+            style={{ 
+              width: '100%', 
+              padding: '12px', 
+              borderRadius: '4px', 
+              border: '1px solid #ddd',
+              fontSize: '16px',
+              backgroundColor: 'white'
+            }}
+          />
+          <p style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>Upload a photo to help illustrate the issue (JPG, PNG, GIF - Max 5MB)</p>
+          {formData.image && (
+            <div style={{ marginTop: '10px', padding: '10px', backgroundColor: '#e8f5e8', borderRadius: '4px' }}>
+              <span style={{ color: '#28a745', fontSize: '14px' }}>✓ Selected: {formData.image.name}</span>
+            </div>
+          )}
         </div>
 
         <div style={{ marginBottom: '30px', padding: '20px', backgroundColor: '#f0f8ff', borderRadius: '8px', border: '1px solid #b3d9ff' }}>
