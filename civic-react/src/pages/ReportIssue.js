@@ -47,7 +47,7 @@ const ReportIssue = () => {
         setSuccess(true);
         setFormData({ title: '', description: '', category: '', location: '', nearbyLandmark: '', latitude: null, longitude: null, image: null });
         setTimeout(() => {
-          navigate('/my-issues');
+          navigate('/issues');
         }, 2000);
       } else {
         setError(data.message || 'Failed to submit issue');
@@ -377,7 +377,7 @@ const ReportIssue = () => {
           
           <button
             type="button"
-            onClick={() => navigate('/my-issues')}
+            onClick={() => navigate('/issues')}
             style={{
               backgroundColor: '#6c757d',
               color: 'white',

@@ -21,6 +21,9 @@ const api = {
       },
       body: data
     }),
+    getActiveIssues: (token) => fetch(`${API_BASE}/issues/active`, {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }),
     getMyIssues: (token) => fetch(`${API_BASE}/issues/my-issues`, {
       headers: { 'Authorization': `Bearer ${token}` }
     }),

@@ -1,295 +1,205 @@
 import React, { useState, useEffect } from 'react';
-import './ViewIssues.css';
+import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import api from '../services/api';
 
 const ViewIssues = () => {
   const [issues, setIssues] = useState([]);
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
+  const [loading, setLoading] = useState(true);
+  const { user, logout, token } = useAuth();
+  const navigate = useNavigate();
 
-  // Mock data for demonstration
   useEffect(() => {
-    const mockIssues = [
-      {
-        id: 1,
-        title: "Large Pothole on Main Road",
-        type: "pothole",
-        description: "Deep pothole causing vehicle damage near the traffic signal",
-        severity: "high",
-        status: "in-progress",
-        progress: 60,
-        reportedBy: "John Doe",
-        reportedDate: "2024-03-15",
-        location: "Banjara Hills, Hyderabad",
-        latitude: 17.4126,
-        longitude: 78.4482,
-        estimatedCompletion: "2024-03-25",
-        assignedTo: "Road Maintenance Dept",
-        updates: [
-          { date: "2024-03-15", message: "Issue reported and verified" },
-          { date: "2024-03-18", message: "Work order created and assigned" },
-          { date: "2024-03-20", message: "Materials procured, work started" }
-        ]
-      },
-      {
-        id: 2,
-        title: "Overflowing Garbage Bins",
-        type: "garbage",
-        description: "Garbage bins overflowing for past 3 days, creating hygiene issues",
-        severity: "medium",
-        status: "resolved",
-        progress: 100,
-        reportedBy: "Sarah Smith",
-        reportedDate: "2024-03-10",
-        location: "Jubilee Hills, Hyderabad",
-        latitude: 17.4399,
-        longitude: 78.4983,
-        completedDate: "2024-03-13",
-        assignedTo: "Waste Management Dept",
-        updates: [
-          { date: "2024-03-10", message: "Issue reported" },
-          { date: "2024-03-11", message: "Cleaning crew dispatched" },
-          { date: "2024-03-13", message: "Bins cleaned and additional bins installed" }
-        ]
-      },
-      {
-        id: 3,
-        title: "Street Light Not Working",
-        type: "streetlight",
-        description: "Street light pole #45 not working, area is dark at night",
-        severity: "medium",
-        status: "pending",
-        progress: 20,
-        reportedBy: "Mike Johnson",
-        reportedDate: "2024-03-18",
-        location: "Gachibowli, Hyderabad",
-        latitude: 17.4435,
-        longitude: 78.3772,
-        estimatedCompletion: "2024-03-28",
-        assignedTo: "Electrical Dept",
-        updates: [
-          { date: "2024-03-18", message: "Issue reported and logged" },
-          { date: "2024-03-19", message: "Technical assessment scheduled" }
-        ]
-      },
-      {
-        id: 4,
-        title: "Blocked Drainage System",
-        type: "drainage",
-        description: "Water logging during rains due to blocked drainage",
-        severity: "high",
-        status: "in-progress",
-        progress: 80,
-        reportedBy: "Lisa Wilson",
-        reportedDate: "2024-03-12",
-        location: "Madhapur, Hyderabad",
-        latitude: 17.4483,
-        longitude: 78.3915,
-        estimatedCompletion: "2024-03-22",
-        assignedTo: "Drainage Dept",
-        updates: [
-          { date: "2024-03-12", message: "Issue reported" },
-          { date: "2024-03-14", message: "Drainage cleaning started" },
-          { date: "2024-03-16", message: "80% cleaning completed" },
-          { date: "2024-03-20", message: "Final inspection pending" }
-        ]
+    fetchActiveIssues();
+  }, [token]);
+
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchActiveIssues();
       }
-    ];
-    setIssues(mockIssues);
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
   }, []);
+
+  const fetchActiveIssues = async () => {
+    try {
+      setLoading(true);
+      console.log('Fetching active issues...');
+      const response = await api.issues.getActiveIssues(token);
+      const data = await response.json();
+      console.log('API response:', data);
+      if (data.success) {
+        console.log('Active issues found:', data.issues.length);
+        setIssues(data.issues);
+      } else {
+        console.error('API error:', data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching issues:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'pending': return '#f59e0b';
-      case 'in-progress': return '#3b82f6';
-      case 'resolved': return '#10b981';
-      default: return '#6b7280';
+      case 'Open': return '#ff6b6b';
+      case 'In Progress': return '#4ecdc4';
+      default: return '#95a5a6';
     }
   };
-
-  const getSeverityColor = (severity) => {
-    switch (severity) {
-      case 'low': return '#10b981';
-      case 'medium': return '#f59e0b';
-      case 'high': return '#ef4444';
-      case 'critical': return '#dc2626';
-      default: return '#6b7280';
-    }
-  };
-
-  const filteredIssues = issues.filter(issue => {
-    const matchesFilter = filter === 'all' || issue.status === filter;
-    const matchesSearch = issue.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         issue.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         issue.type.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
 
   return (
-    <div className="view-issues">
-      <div className="container">
-        <div className="issues-header">
-          <h1>Reported Issues</h1>
-          <p>Track the progress of civic issues reported by citizens</p>
+    <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '30px' }}>
+        <h1>View Issues</h1>
+        <div>
+          <button 
+            onClick={() => navigate('/report')}
+            style={{ 
+              backgroundColor: '#007bff', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              borderRadius: '5px',
+              marginRight: '10px',
+              cursor: 'pointer'
+            }}
+          >
+            Report New Issue
+          </button>
+          <button 
+            onClick={() => { logout(); navigate('/login'); }}
+            style={{ 
+              backgroundColor: '#dc3545', 
+              color: 'white', 
+              border: 'none', 
+              padding: '10px 20px', 
+              borderRadius: '5px',
+              cursor: 'pointer'
+            }}
+          >
+            Logout
+          </button>
         </div>
+      </div>
 
-        <div className="filters">
-          <div className="search-bar">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <input
-              type="text"
-              placeholder="Search issues by title, location, or type..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
-          
-          <div className="filter-buttons">
-            <button 
-              className={filter === 'all' ? 'active' : ''}
-              onClick={() => setFilter('all')}
-            >
-              All Issues
-            </button>
-            <button 
-              className={filter === 'pending' ? 'active' : ''}
-              onClick={() => setFilter('pending')}
-            >
-              Pending
-            </button>
-            <button 
-              className={filter === 'in-progress' ? 'active' : ''}
-              onClick={() => setFilter('in-progress')}
-            >
-              In Progress
-            </button>
-            <button 
-              className={filter === 'resolved' ? 'active' : ''}
-              onClick={() => setFilter('resolved')}
-            >
-              Resolved
-            </button>
-          </div>
-        </div>
-
-        <div className="issues-grid">
-          {filteredIssues.map(issue => (
-            <div key={issue.id} className="issue-card">
-              <div className="issue-header">
-                <div className="issue-title">
-                  <h3>{issue.title}</h3>
-                  <div className="issue-meta">
-                    <span className="issue-type">{issue.type}</span>
-                    <span 
-                      className="severity-badge"
-                      style={{ backgroundColor: getSeverityColor(issue.severity) }}
-                    >
-                      {issue.severity}
+      {loading ? (
+        <div>Loading...</div>
+      ) : (
+        <div>
+          <h3>Active Community Issues ({issues.length})</h3>
+          <p style={{ color: '#666', marginBottom: '20px' }}>
+            Showing issues that are currently Open or In Progress
+          </p>
+          {issues.length === 0 ? (
+            <div style={{ 
+              textAlign: 'center', 
+              padding: '40px', 
+              backgroundColor: '#f8f9fa', 
+              borderRadius: '8px',
+              color: '#666'
+            }}>
+              <h4>No Active Issues</h4>
+              <p>Great news! There are currently no active issues in your community.</p>
+              <button 
+                onClick={() => navigate('/report')}
+                style={{ 
+                  backgroundColor: '#28a745', 
+                  color: 'white', 
+                  border: 'none', 
+                  padding: '10px 20px', 
+                  borderRadius: '5px',
+                  cursor: 'pointer',
+                  marginTop: '10px'
+                }}
+              >
+                Report an Issue
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gap: '20px' }}>
+              {issues.map(issue => (
+                <div key={issue._id} style={{ 
+                  border: '1px solid #ddd', 
+                  borderRadius: '8px', 
+                  padding: '20px',
+                  backgroundColor: 'white',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+                }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', marginBottom: '15px' }}>
+                    <div>
+                      <h4 style={{ margin: '0 0 5px 0', color: '#333' }}>{issue.title}</h4>
+                      <p style={{ margin: '0', color: '#666', fontSize: '14px' }}>Issue ID: {issue.issue_id}</p>
+                    </div>
+                    <span style={{ 
+                      backgroundColor: getStatusColor(issue.status), 
+                      color: 'white', 
+                      padding: '5px 10px', 
+                      borderRadius: '15px',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}>
+                      {issue.status}
                     </span>
                   </div>
-                </div>
-                <div 
-                  className="status-badge"
-                  style={{ backgroundColor: getStatusColor(issue.status) }}
-                >
-                  {issue.status.replace('-', ' ')}
-                </div>
-              </div>
-
-              <div className="issue-content">
-                <p className="description">{issue.description}</p>
-                
-                <div className="issue-details">
-                  <div className="detail-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                      <circle cx="12" cy="10" r="3"></circle>
-                    </svg>
-                    <span>{issue.location}</span>
-                  </div>
-                  <div className="detail-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12,6 12,12 16,14"></polyline>
-                    </svg>
-                    <span>Reported: {new Date(issue.reportedDate).toLocaleDateString()}</span>
-                  </div>
-                  <div className="detail-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="12" cy="7" r="4"></circle>
-                    </svg>
-                    <span>By: {issue.reportedBy}</span>
-                  </div>
-                  <div className="detail-item">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                      <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                    </svg>
-                    <span>Assigned: {issue.assignedTo}</span>
+                  <p style={{ marginBottom: '15px', color: '#555' }}>{issue.description}</p>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', fontSize: '14px', color: '#666' }}>
+                    <div><strong>Category:</strong> {issue.category}</div>
+                    <div><strong>Location:</strong> {issue.location}</div>
+                    {issue.nearbyLandmark && <div><strong>Landmark:</strong> {issue.nearbyLandmark}</div>}
+                    <div><strong>Reported by:</strong> {issue.user_id?.email}</div>
+                    {(issue.latitude && issue.longitude) && (
+                      <div style={{ gridColumn: '1 / -1' }}>
+                        <strong>GPS Location:</strong> {issue.latitude.toFixed(6)}, {issue.longitude.toFixed(6)}
+                        <a 
+                          href={`https://www.google.com/maps?q=${issue.latitude},${issue.longitude}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{ marginLeft: '10px', color: '#007bff', textDecoration: 'none' }}
+                        >
+                          📍 View on Map
+                        </a>
+                      </div>
+                    )}
+                    {issue.image && (
+                      <div style={{ gridColumn: '1 / -1', marginTop: '10px' }}>
+                        <strong>Photo:</strong>
+                        <img 
+                          src={`http://localhost:5000/uploads/${issue.image}`}
+                          alt="Issue"
+                          style={{ 
+                            maxWidth: '200px', 
+                            maxHeight: '150px', 
+                            marginLeft: '10px', 
+                            borderRadius: '4px',
+                            border: '1px solid #ddd'
+                          }}
+                        />
+                      </div>
+                    )}
+                    <div><strong>Created:</strong> {formatDate(issue.createdAt)}</div>
+                    <div><strong>Updated:</strong> {formatDate(issue.updatedAt)}</div>
                   </div>
                 </div>
-
-                <div className="coordinates">
-                  <span>Lat: {issue.latitude}</span>
-                  <span>Lng: {issue.longitude}</span>
-                </div>
-              </div>
-
-              <div className="progress-section">
-                <div className="progress-header">
-                  <span>Progress</span>
-                  <span>{issue.progress}%</span>
-                </div>
-                <div className="progress-bar">
-                  <div 
-                    className="progress-fill"
-                    style={{ 
-                      width: `${issue.progress}%`,
-                      backgroundColor: getStatusColor(issue.status)
-                    }}
-                  ></div>
-                </div>
-                {issue.estimatedCompletion && issue.status !== 'resolved' && (
-                  <div className="estimated-completion">
-                    Expected completion: {new Date(issue.estimatedCompletion).toLocaleDateString()}
-                  </div>
-                )}
-                {issue.completedDate && (
-                  <div className="completed-date">
-                    Completed on: {new Date(issue.completedDate).toLocaleDateString()}
-                  </div>
-                )}
-              </div>
-
-              <div className="updates-section">
-                <h4>Recent Updates</h4>
-                <div className="updates-list">
-                  {issue.updates.slice(-2).map((update, index) => (
-                    <div key={index} className="update-item">
-                      <div className="update-date">{new Date(update.date).toLocaleDateString()}</div>
-                      <div className="update-message">{update.message}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
         </div>
-
-        {filteredIssues.length === 0 && (
-          <div className="no-issues">
-            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
-              <circle cx="11" cy="11" r="8"></circle>
-              <path d="m21 21-4.35-4.35"></path>
-            </svg>
-            <h3>No issues found</h3>
-            <p>Try adjusting your search or filter criteria</p>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

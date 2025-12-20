@@ -21,13 +21,14 @@ router.post('/report', auth, upload.single('image'), async (req, res) => {
       }
     }
     
-    console.log('Creating issue with data:', { ...otherData, latitude, longitude, user_id: req.user.userId });
+    console.log('Creating issue with data:', { ...otherData, latitude, longitude, status: 'Open', user_id: req.user.userId });
     
     const issue = new Issue({ 
       ...otherData, 
       latitude: latitude ? Number(latitude) : null,
       longitude: longitude ? Number(longitude) : null,
       image: req.file ? req.file.filename : null,
+      status: 'Open',
       user_id: req.user.userId 
     });
     
@@ -50,7 +51,7 @@ router.post('/report', auth, upload.single('image'), async (req, res) => {
   }
 });
 
-// Get Issues by Logged-in User
+// Get Issues by Logged-in User (for reporting history)
 router.get('/my-issues', auth, async (req, res) => {
   try {
     const issues = await Issue.find({ user_id: req.user.userId })
@@ -58,6 +59,23 @@ router.get('/my-issues', auth, async (req, res) => {
       .sort({ createdAt: -1 });
     res.json({ success: true, issues });
   } catch (error) {
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// Get Active Issues for Users (Open and In Progress only)
+router.get('/active', auth, async (req, res) => {
+  try {
+    console.log('Fetching active issues for user:', req.user.userId);
+    const issues = await Issue.find({ 
+      status: { $in: ['Open', 'In Progress'] }
+    })
+      .populate('user_id', 'email')
+      .sort({ createdAt: -1 });
+    console.log('Found active issues:', issues.length);
+    res.json({ success: true, issues });
+  } catch (error) {
+    console.error('Error fetching active issues:', error);
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
