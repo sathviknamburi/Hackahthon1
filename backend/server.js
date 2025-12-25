@@ -12,14 +12,24 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/civic-report')
-  .then(() => console.log('MongoDB connected'))
-  .catch(err => console.error('MongoDB connection error:', err));
+const connectDB = async () => {
+  if (mongoose.connection.readyState === 0) {
+    await mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/civic-report');
+    console.log('MongoDB connected');
+  }
+};
 
 app.use('/api/auth', authRoutes);
 app.use('/api/issues', issueRoutes);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+if (require.main === module) {
+  connectDB().then(() => {
+    const PORT = process.env.PORT || 5000;
+    app.listen(PORT, () => {
+      console.log(`Server running on port ${PORT}`);
+    });
+  }).catch(err => console.error('MongoDB connection error:', err));
+}
+
+module.exports = app;
+module.exports.connectDB = connectDB;
