@@ -19,8 +19,12 @@ const connectDB = async () => {
   }
 };
 
-app.use('/api/auth', authRoutes);
-app.use('/api/issues', issueRoutes);
+const apiRouter = express.Router();
+apiRouter.use('/auth', authRoutes);
+apiRouter.use('/issues', issueRoutes);
+
+app.use('/api', apiRouter);
+app.use('/.netlify/functions/api', apiRouter);
 
 if (require.main === module) {
   connectDB().then(() => {
