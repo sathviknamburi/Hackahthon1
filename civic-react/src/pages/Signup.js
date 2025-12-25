@@ -44,17 +44,21 @@ const Signup = () => {
         password: formData.password
       });
 
-      const data = await response.json();
+      // Try to parse JSON regardless of status
+      const data = await response.json().catch(() => ({}));
 
-      if (data.success) {
-        navigate('/login', { 
+      if (response.ok && data.success) {
+        navigate('/login', {
           state: { message: 'Account created successfully! Please login.' }
         });
       } else {
-        setError(data.message || 'Registration failed');
+        // Display specific server error if available
+        console.error('Registration failed:', data);
+        setError(data.error || data.message || 'Registration failed');
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      console.error('Network Error:', error);
+      setError('Network error: ' + error.message);
     } finally {
       setLoading(false);
     }
@@ -70,7 +74,7 @@ const Signup = () => {
 
         <form onSubmit={handleSubmit} className="auth-form">
           {error && <div className="error-message">{error}</div>}
-          
+
           <div className="form-group">
             <label>Full Name</label>
             <input
@@ -119,8 +123,8 @@ const Signup = () => {
             />
           </div>
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             className="auth-button"
             disabled={loading}
           >
