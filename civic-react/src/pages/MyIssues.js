@@ -7,12 +7,12 @@ const MyIssues = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const { user, logout, token } = useAuth();
+  const { logout, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchMyIssues();
-  }, [token]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Refresh issues when component becomes visible
   useEffect(() => {
@@ -24,7 +24,7 @@ const MyIssues = () => {
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchMyIssues = async () => {
     try {

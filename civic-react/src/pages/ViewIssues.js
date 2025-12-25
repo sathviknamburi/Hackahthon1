@@ -6,12 +6,12 @@ import api from '../services/api';
 const ViewIssues = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { user, logout, token } = useAuth();
+  const { logout, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchActiveIssues();
-  }, [token]);
+  }, [token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -22,7 +22,7 @@ const ViewIssues = () => {
     
     document.addEventListener('visibilitychange', handleVisibilityChange);
     return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchActiveIssues = async () => {
     try {

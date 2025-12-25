@@ -7,12 +7,12 @@ const AdminViewIssues = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState('');
-  const { user, logout, token } = useAuth();
+  const { logout, token } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllIssues();
-  }, [statusFilter]);
+  }, [statusFilter, token]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchAllIssues = async () => {
     try {

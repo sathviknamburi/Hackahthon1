@@ -101,6 +101,9 @@ const ReportIssue = () => {
           case error.TIMEOUT:
             errorMessage = 'Location request timed out.';
             break;
+          default:
+            errorMessage = 'Unable to retrieve location.';
+            break;
         }
         setLocationError(errorMessage);
         setLocationLoading(false);
