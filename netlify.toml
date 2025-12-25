@@ -3,7 +3,7 @@
   publish = "civic-react/build"
   functions = "netlify/functions"
 
-[context.production.environment]
+[build.environment]
   REACT_APP_API_URL = "/api"
 
 [[redirects]]
